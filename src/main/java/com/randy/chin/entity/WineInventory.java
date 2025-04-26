@@ -72,7 +72,7 @@ public class WineInventory implements Serializable {
     /**
      * 数量
      */
-    private Integer quantity;
+    private String quantity;
 
     /**
      * 状态

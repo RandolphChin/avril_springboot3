@@ -36,4 +36,10 @@ public interface WineInventoryService extends IService<WineInventory> {
      * @return 葡萄酒库存列表
      */
     List<WineInventory> listAll(String wineType, String winery,Integer status, String vintage);
+
+    /**
+     * 使用Aspose Cells导入Excel数据
+     * 解决EasyExcel无法识别某些标题的问题
+     */
+    boolean importDataWithAspose(MultipartFile file) throws Exception;
 }

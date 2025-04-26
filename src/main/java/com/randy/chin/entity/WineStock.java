@@ -57,12 +57,12 @@ public class WineStock implements Serializable {
     /**
      * 可销售库存
      */
-    private Integer sellableInventory;
+    private String sellableInventory;
 
     /**
      * 餐饮售价
      */
-    private BigDecimal cateringPrice;
+    private String cateringPrice;
 
     /**
      * 状态

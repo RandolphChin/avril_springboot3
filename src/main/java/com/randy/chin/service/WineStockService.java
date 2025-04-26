@@ -39,4 +39,10 @@ public interface WineStockService extends IService<WineStock> {
 
     // 根据库存更新报表
     public void reNewWineInventory();
+
+    /**
+     * 使用Aspose Cells导入Excel数据
+     * 解决EasyExcel无法识别某些标题的问题
+     */
+    boolean importDataWithAspose(MultipartFile file) throws Exception;
 }

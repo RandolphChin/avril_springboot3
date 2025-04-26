@@ -105,13 +105,13 @@ public class WineStockController {
     }
 
     /**
-     * 导入商品库存数据
+     * 使用Aspose Cells导入商品库存数据
      */
-    @PostMapping("/import")
-    public Map<String, Object> importData(@RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping("/import-with-aspose")
+    public Map<String, Object> importDataWithAspose(@RequestParam("file") MultipartFile file) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {
-            boolean success = wineStockService.importData(file);
+            boolean success = wineStockService.importDataWithAspose(file);
             result.put("status", success ? "success" : "failure");
             result.put("message", success ? "导入成功" : "导入失败");
         } catch (Exception e) {

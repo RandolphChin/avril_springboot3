@@ -30,10 +30,10 @@ public class WineStockExcelModel {
     private String specification;
 
     @ExcelProperty("可销售库存")
-    private Integer sellableInventory;
+    private String sellableInventory;
 
     @ExcelProperty("餐饮售价")
-    private BigDecimal cateringPrice;
+    private String cateringPrice;
 
     private String status;
 

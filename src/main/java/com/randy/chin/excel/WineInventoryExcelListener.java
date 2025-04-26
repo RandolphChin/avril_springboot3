@@ -83,6 +83,7 @@ public class WineInventoryExcelListener extends AnalysisEventListener<WineInvent
 
         // 将Excel模型转换为实体类
         WineInventory wineInventory = new WineInventory();
+        removeTrailingZeros(excelModel.getVintage());
         BeanUtils.copyProperties(excelModel, wineInventory);
 
         // 设置子葡萄酒类型和子酒庄
@@ -122,5 +123,30 @@ public class WineInventoryExcelListener extends AnalysisEventListener<WineInvent
         log.info("{}条葡萄酒库存数据，开始存储数据库！", list.size());
         wineInventoryService.saveBatch(list);
         log.info("存储数据库成功！");
+    }
+
+        /**
+     * 移除数值字符串中的尾随零
+     * 例如：将"5.0"转换为"5"，但保留"5.5"不变
+     */
+    private String removeTrailingZeros(String value) {
+        if (!StringUtils.hasText(value)) {
+            return value;
+        }
+        
+        try {
+            // 尝试解析为数值
+            if (value.contains(".")) {
+                // 如果小数点后全是0，则移除小数点和后面的0
+                if (value.matches(".*\\.0+$")) {
+                    return value.replaceAll("\\.0+$", "");
+                }
+            }
+        } catch (Exception e) {
+            // 解析失败，返回原值
+            log.debug("移除尾随零失败，值: {}", value);
+        }
+        
+        return value;
     }
 }

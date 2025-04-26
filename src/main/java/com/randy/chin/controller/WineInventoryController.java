@@ -129,6 +129,24 @@ public class WineInventoryController {
     }
     
     /**
+     * 使用Aspose Cells导入葡萄酒库存数据
+     */
+    @PostMapping("/import-with-aspose")
+    public Map<String, Object> importDataWithAspose(@RequestParam("file") MultipartFile file) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean success = wineInventoryService.importDataWithAspose(file);
+            result.put("status", success ? "success" : "failure");
+            result.put("message", success ? "导入成功" : "导入失败");
+        } catch (Exception e) {
+            log.error("导入Excel异常", e);
+            result.put("status", "failure");
+            result.put("message", "导入失败：" + e.getMessage());
+        }
+        return result;
+    }
+    
+    /**
      * 查询所有葡萄酒库存（不分页）
      */
     @GetMapping("/all")

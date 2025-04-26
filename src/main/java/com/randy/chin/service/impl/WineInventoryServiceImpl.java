@@ -27,9 +27,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.aspose.cells.CellValueType.IS_NULL;
 import static com.aspose.cells.CellValueType.IS_STRING;
@@ -69,6 +72,167 @@ public class WineInventoryServiceImpl extends ServiceImpl<WineInventoryMapper, W
             return true;
         } catch (Exception e) {
             log.error("导入葡萄酒库存数据失败", e);
+            throw e;
+        }
+    }
+
+    /**
+     * 使用Aspose Cells导入Excel数据
+     * 解决EasyExcel无法识别某些标题的问题
+     */
+    @Override
+    @Transactional
+    public boolean importDataWithAspose(MultipartFile file) throws Exception {
+        try {
+            // 授权Aspose Cells
+            CellsUtil.authrolizeLicense();
+            
+            // 加载Excel文件
+            Workbook workbook = new Workbook(file.getInputStream());
+            Worksheet worksheet = workbook.getWorksheets().get(0);
+            Cells cells = worksheet.getCells();
+            
+            // 获取数据范围
+            int rowCount = cells.getMaxDataRow() + 1;
+            int colCount = cells.getMaxDataColumn() + 1;
+            
+            // 表头行号（从0开始计数，所以第2行是索引1）
+            int headerRowIndex = 1;
+            
+            // 存储表头信息
+            Map<Integer, String> headerMap = new HashMap<>();
+            for (int col = 0; col < colCount; col++) {
+                Cell cell = cells.get(headerRowIndex, col);
+                if (cell != null && cell.getType() == CellValueType.IS_STRING) {
+                    headerMap.put(col, cell.getStringValue().trim());
+                }
+            }
+            
+            log.info("解析到Excel表头信息: {}", headerMap);
+            
+            // 存储待保存的数据
+            List<WineInventory> list = new ArrayList<>();
+            
+            // 添加全局变量，用于存储当前的子葡萄酒类型和子酒庄
+            String currentSubWineType = null;
+            String currentSubWinery = null;
+            
+            // 从表头下一行开始读取数据
+            for (int row = headerRowIndex + 1; row < rowCount; row++) {
+                // 创建Excel模型对象
+                WineInventoryExcelModel excelModel = new WineInventoryExcelModel();
+                
+                // 读取每一列的数据
+                for (int col = 0; col < colCount; col++) {
+                    Cell cell = cells.get(row, col);
+                    String headerName = headerMap.get(col);
+                    
+                    if (headerName == null || cell == null || cell.getType() == CellValueType.IS_NULL) {
+                        continue;
+                    }
+                    
+                    String cellValue = "";
+                    if (cell.getType() == CellValueType.IS_STRING) {
+                        cellValue = cell.getStringValue().trim();
+                    } else if (cell.getType() == CellValueType.IS_NUMERIC) {
+                        cellValue = String.valueOf(cell.getDoubleValue());
+                    } else {
+                        cellValue = cell.getDisplayStringValue().trim();
+                    }
+                    
+                    // 根据表头设置对应的属性
+                    switch (headerName) {
+                        case "Wine Type":
+                            excelModel.setWineType(cellValue);
+                            break;
+                        case "Winery":
+                            excelModel.setWinery(cellValue);
+                            break;
+                        case "Cuvée Name":
+                            excelModel.setCuveeName(cellValue);
+                            break;
+                        case "Chinese Name":
+                            excelModel.setChineseName(cellValue);
+                            break;
+                        case "Vintage":
+                            excelModel.setVintage(cellValue);
+                            break;
+                        case "Region":
+                            excelModel.setRegion(cellValue);
+                            break;
+                        case "Country":
+                            excelModel.setCountry(cellValue);
+                            break;
+                        case "Format":
+                            excelModel.setFormat(cellValue);
+                            break;
+                        case "Trade Price":
+                            excelModel.setTradePrice(cellValue);
+                            break;
+                        case "Quantity":
+                            excelModel.setQuantity(cellValue);
+                            break;
+                        case "Retail Price":
+                            excelModel.setRetailPrice(cellValue);
+                            break;
+                        case "Distributor Price":
+                        case "Distributor  Price":
+                            excelModel.setDistributorPrice(cellValue);
+                            break;
+                        case "Cost Price":
+                            excelModel.setCostPrice(cellValue);
+                            break;
+                        default:
+                            log.debug("未知表头: {}, 值: {}", headerName, cellValue);
+                    }
+                }
+                
+                // 如果wineType为空，跳过该行
+                if (!StringUtils.hasText(excelModel.getWineType())) {
+                    log.warn("跳过空行数据，行号: {}", row);
+                    continue;
+                }
+                
+                // 当cuveeName为空时，更新全局变量
+                if (!StringUtils.hasText(excelModel.getCuveeName())) {
+                    currentSubWineType = excelModel.getWineType();
+                    currentSubWinery = excelModel.getWinery();
+                    log.info("更新子类型信息 - 子葡萄酒类型: {}, 子酒庄: {}", currentSubWineType, currentSubWinery);
+                    continue;
+                }
+                
+                // 将Excel模型转换为实体类
+                WineInventory wineInventory = new WineInventory();
+                BeanUtils.copyProperties(excelModel, wineInventory);
+                
+                // 设置子葡萄酒类型和子酒庄
+                wineInventory.setSubWineType(currentSubWineType);
+                wineInventory.setSubWinery(currentSubWinery);
+                wineInventory.setLineIndex(row);
+                log.info("设置子类型信息 - 子葡萄酒类型: {}, 子酒庄: {}", currentSubWineType, currentSubWinery);
+                wineInventory.setStatus(1);
+                wineInventory.setCreatedAt(LocalDateTime.now());
+                wineInventory.setUpdatedAt(LocalDateTime.now());
+                wineInventory.setVintage(removeTrailingZeros(wineInventory.getVintage()));
+                list.add(wineInventory);
+            }
+            
+            // 保存数据
+            if (!list.isEmpty()) {
+                // 把status为0的删除掉，把status为1的设置为0
+                this.remove(Wrappers.<WineInventory>query().lambda().eq(WineInventory::getStatus, 0));
+                this.lambdaUpdate().set(WineInventory::getStatus, 0).eq(WineInventory::getStatus, 1).update();
+                
+                log.info("{}条葡萄酒库存数据，开始存储数据库！", list.size());
+                this.saveBatch(list);
+                log.info("存储数据库成功！");
+            } else {
+                log.warn("没有数据需要保存");
+            }
+            
+            return true;
+        } catch (Exception e) {
+            log.error("使用Aspose Cells导入葡萄酒库存数据失败", e);
             throw e;
         }
     }
@@ -202,9 +366,63 @@ public class WineInventoryServiceImpl extends ServiceImpl<WineInventoryMapper, W
                 BeanUtils.copyProperties(data, excelModel);
                 renderList.add(excelModel);
             }
-
         }
+        
+        // 处理数值字段，将小数点后为0的值转换为整数形式
+        for (WineInventoryExcelModel model : renderList) {
+            // 处理tradePrice
+            if (StringUtils.hasText(model.getTradePrice())) {
+                model.setTradePrice(removeTrailingZeros(model.getTradePrice()));
+            }
+            
+            // 处理quantity（如果是字符串类型）
+            if (model.getQuantity() != null) {
+                String quantityStr = String.valueOf(model.getQuantity());
+                model.setQuantity(removeTrailingZeros(quantityStr));
+            }
+            
+            // 处理retailPrice
+            if (StringUtils.hasText(model.getRetailPrice())) {
+                model.setRetailPrice(removeTrailingZeros(model.getRetailPrice()));
+            }
+            
+            // 处理distributorPrice
+            if (StringUtils.hasText(model.getDistributorPrice())) {
+                model.setDistributorPrice(removeTrailingZeros(model.getDistributorPrice()));
+            }
+            
+            // 处理costPrice
+            if (StringUtils.hasText(model.getCostPrice())) {
+                model.setCostPrice(removeTrailingZeros(model.getCostPrice()));
+            }
+        }
+        
         return renderList;
+    }
+    
+    /**
+     * 移除数值字符串中的尾随零
+     * 例如：将"5.0"转换为"5"，但保留"5.5"不变
+     */
+    private String removeTrailingZeros(String value) {
+        if (!StringUtils.hasText(value)) {
+            return value;
+        }
+        
+        try {
+            // 尝试解析为数值
+            if (value.contains(".")) {
+                // 如果小数点后全是0，则移除小数点和后面的0
+                if (value.matches(".*\\.0+$")) {
+                    return value.replaceAll("\\.0+$", "");
+                }
+            }
+        } catch (Exception e) {
+            // 解析失败，返回原值
+            log.debug("移除尾随零失败，值: {}", value);
+        }
+        
+        return value;
     }
 
 

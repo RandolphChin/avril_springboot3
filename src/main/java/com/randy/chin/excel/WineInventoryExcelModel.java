@@ -37,7 +37,7 @@ public class WineInventoryExcelModel {
     private String tradePrice;
 
     @ExcelProperty("Quantity") // 数量
-    private Integer quantity;
+    private String quantity;
 
     private Integer status;
 
@@ -56,4 +56,6 @@ public class WineInventoryExcelModel {
     // 成本价格
     @ExcelProperty("Cost Price")
     private String costPrice;
+
+    private String izChanged; // 无变化默认0， 变动10
 }
