@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ public class WineInventoryExcelListener extends AnalysisEventListener<WineInvent
     // 添加表头处理方法，用于调试表头信息
     @Override
     public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-        log.info("解析到Excel表头信息: {}", headMap);
+        log.info("解析到Excel表头信息（原始）: {}", headMap);
     }
 
     // 添加异常处理方法

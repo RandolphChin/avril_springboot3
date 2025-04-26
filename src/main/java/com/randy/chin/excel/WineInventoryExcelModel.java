@@ -46,4 +46,14 @@ public class WineInventoryExcelModel {
 
     // 子酒庄
     private String subWinery;
+
+    @ExcelProperty("Retail Price") // 零售价格
+    private String retailPrice;
+
+    // 经销商价格
+    @ExcelProperty("Distributor  Price")
+    private String distributorPrice;
+    // 成本价格
+    @ExcelProperty("Cost Price")
+    private String costPrice;
 }

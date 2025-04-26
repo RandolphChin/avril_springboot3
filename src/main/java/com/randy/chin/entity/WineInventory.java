@@ -102,4 +102,11 @@ public class WineInventory implements Serializable {
     private Integer lineIndex; // 行排序
     // 是否发生变化
     private String izChanged; // 无变化默认0， 变动10
+
+    // 零售价格
+    private String retailPrice;
+    // 经销商价格
+    private String distributorPrice;
+    // 成本价格
+    private String costPrice;
 }
