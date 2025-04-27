@@ -38,4 +38,7 @@ public class WineStockExcelModel {
     private String status;
 
     private Integer lineIndex;
+
+    @ExcelProperty("账面库存")
+    private String bookInventory;
 }

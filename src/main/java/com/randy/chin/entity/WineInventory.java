@@ -109,4 +109,6 @@ public class WineInventory implements Serializable {
     private String distributorPrice;
     // 成本价格
     private String costPrice;
+
+    private String remark; // 备注
 }

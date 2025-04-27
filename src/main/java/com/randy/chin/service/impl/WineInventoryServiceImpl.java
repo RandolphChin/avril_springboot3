@@ -109,7 +109,6 @@ public class WineInventoryServiceImpl extends ServiceImpl<WineInventoryMapper, W
             }
             
             log.info("解析到Excel表头信息: {}", headerMap);
-            
             // 存储待保存的数据
             List<WineInventory> list = new ArrayList<>();
             
@@ -181,6 +180,9 @@ public class WineInventoryServiceImpl extends ServiceImpl<WineInventoryMapper, W
                             break;
                         case "Cost Price":
                             excelModel.setCostPrice(cellValue);
+                            break;
+                        case "Remark":
+                            excelModel.setRemark(cellValue);
                             break;
                         default:
                             log.debug("未知表头: {}, 值: {}", headerName, cellValue);

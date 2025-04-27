@@ -83,4 +83,6 @@ public class WineStock implements Serializable {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+
+    private String bookInventory; // 账面库存
 }

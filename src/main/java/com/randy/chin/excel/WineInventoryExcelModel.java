@@ -58,4 +58,6 @@ public class WineInventoryExcelModel {
     private String costPrice;
 
     private String izChanged; // 无变化默认0， 变动10
+
+    private String remark; // 备注
 }

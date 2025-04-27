@@ -92,10 +92,12 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
             // 获取数据范围
             int rowCount = cells.getMaxDataRow() + 1;
             int colCount = cells.getMaxDataColumn() + 1;
-            
+          
             // 表头行号（从0开始计数，所以第5行是索引4）
             int headerRowIndex = 4;
-            
+            int bookInventoryIndex = 5;
+            Cell bookInventoryCell = cells.get(bookInventoryIndex,11);
+
             // 存储表头信息
             Map<Integer, String> headerMap = new HashMap<>();
             for (int col = 0; col < colCount; col++) {
@@ -104,7 +106,7 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                     headerMap.put(col, cell.getStringValue().trim());
                 }
             }
-            
+            headerMap.put(11,"账面库存");
             log.info("解析到Excel表头信息: {}", headerMap);
             
             // 存储待保存的数据
@@ -162,6 +164,9 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                             break;
                         case "餐饮售价":
                             excelModel.setCateringPrice(cellValue);
+                            break;
+                        case "账面库存":
+                            excelModel.setBookInventory(cellValue);
                             break;
                         default:
                             log.debug("未知表头: {}, 值: {}", headerName, cellValue);
@@ -314,7 +319,7 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                 for(WineStock ws: stocklist){
                     if(ws.getProductName().replaceAll(" ", "").equals(productName)){
                         wineInventoryService.lambdaUpdate().eq(WineInventory::getId, wi.getId())
-                        .set(WineInventory::getQuantity, ws.getSellableInventory()).set(WineInventory::getIzChanged, "10")
+                        .set(WineInventory::getQuantity, ws.getBookInventory()).set(WineInventory::getIzChanged, "10")
                         .set(WineInventory::getUpdatedAt, LocalDateTime.now())
                         .update();
                     }
