@@ -2,9 +2,9 @@ package com.randy.chin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.randy.chin.entity.WineStock;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 

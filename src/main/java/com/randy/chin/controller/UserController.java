@@ -11,10 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,15 +41,15 @@ public class UserController {
         if (username != null && !username.isEmpty()) {
             queryWrapper.like(User::getUsername, username);
         }
-        
+
         Page<User> userPage = userService.page(page, queryWrapper);
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("records", userPage.getRecords());
         result.put("total", userPage.getTotal());
         result.put("size", userPage.getSize());
         result.put("current", userPage.getCurrent());
-        
+
         return result;
     }
 
@@ -97,9 +96,9 @@ public class UserController {
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setCharacterEncoding("utf-8");
-            String fileName = URLEncoder.encode("用户数据", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            String fileName = URLEncoder.encode("用户数据").replaceAll("\\+", "%20");
             response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
-            
+
             List<User> list = userService.list();
             EasyExcel.write(response.getOutputStream(), User.class).sheet("用户数据").doWrite(list);
         } catch (Exception e) {

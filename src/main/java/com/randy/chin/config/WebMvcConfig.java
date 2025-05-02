@@ -1,24 +1,25 @@
 package com.randy.chin.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    // springboot3 之后 .allowedOrigin("*") 不能和 .allowCredentials(true) 同时使用
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns(
-                        "http://localhost:*",
-                        "http://127.0.0.1:*"
-                )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .exposedHeaders("Content-Disposition")
-                .maxAge(3600);
+    @Bean
+    public FilterRegistrationBean filterRegistration() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new SimpleCORSFilter());
+        List<String> urlList = new ArrayList<String>();
+        urlList.add("/*");
+        registration.setUrlPatterns(urlList);
+        registration.setName("UrlFilter");
+        registration.setOrder(1);
+        return registration;
     }
 }

@@ -1,25 +1,19 @@
 package com.randy.chin.controller;
 
-import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.randy.chin.entity.WineInventory;
-import com.randy.chin.excel.WineInventoryExcelModel;
 import com.randy.chin.service.WineInventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 葡萄酒库存控制器
@@ -127,7 +121,7 @@ public class WineInventoryController {
         }
         return result;
     }
-    
+
     /**
      * 查询所有葡萄酒库存（不分页）
      */
