@@ -80,23 +80,21 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
         try {
             // 清空数据
             wineStockMapper.delete(null);
-            
+
             // 授权Aspose Cells
             CellsUtil.authrolizeLicense();
-            
+
             // 加载Excel文件
             Workbook workbook = new Workbook(file.getInputStream());
             Worksheet worksheet = workbook.getWorksheets().get(0);
             Cells cells = worksheet.getCells();
-            
+
             // 获取数据范围
             int rowCount = cells.getMaxDataRow() + 1;
             int colCount = cells.getMaxDataColumn() + 1;
-          
+
             // 表头行号（从0开始计数，所以第5行是索引4）
-            int headerRowIndex = 4;
-            int bookInventoryIndex = 5;
-            Cell bookInventoryCell = cells.get(bookInventoryIndex,11);
+            int headerRowIndex = 0;
 
             // 存储表头信息
             Map<Integer, String> headerMap = new HashMap<>();
@@ -106,30 +104,29 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                     headerMap.put(col, cell.getStringValue().trim());
                 }
             }
-            headerMap.put(11,"账面库存");
             log.info("解析到Excel表头信息: {}", headerMap);
-            
+
             // 存储待保存的数据
             List<WineStock> list = new ArrayList<>();
-            
+
             // 添加全局变量，用于存储当前的一级分类和二级分类
             String currentFirstLevelCategory = null;
             String currentSecondLevelCategory = null;
-            
+
             // 从表头下一行开始读取数据
             for (int row = headerRowIndex + 1; row < rowCount; row++) {
                 // 创建Excel模型对象
                 WineStockExcelModel excelModel = new WineStockExcelModel();
-                
+
                 // 读取每一列的数据
                 for (int col = 0; col < colCount; col++) {
                     Cell cell = cells.get(row, col);
                     String headerName = headerMap.get(col);
-                    
+
                     if (headerName == null || cell == null || cell.getType() == CellValueType.IS_NULL) {
                         continue;
                     }
-                    
+
                     String cellValue = "";
                     if (cell.getType() == CellValueType.IS_STRING) {
                         cellValue = cell.getStringValue().trim();
@@ -138,7 +135,7 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                     } else {
                         cellValue = cell.getDisplayStringValue().trim();
                     }
-                    
+
                     // 根据表头设置对应的属性
                     switch (headerName) {
                         case "一级分类":
@@ -172,13 +169,13 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                             log.debug("未知表头: {}, 值: {}", headerName, cellValue);
                     }
                 }
-                
+
                 // 如果一级分类为空，跳过该行
                 if (!StringUtils.hasText(excelModel.getFirstLevelCategory())) {
                     log.warn("跳过空行数据，行号: {}", row);
                     continue;
                 }
-                
+
                 // 当商品名称为空时，更新全局变量
                 if (!StringUtils.hasText(excelModel.getProductName())) {
                     currentFirstLevelCategory = excelModel.getFirstLevelCategory();
@@ -186,11 +183,11 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                     log.info("更新分类信息 - 一级分类: {}, 二级分类: {}", currentFirstLevelCategory, currentSecondLevelCategory);
                     continue;
                 }
-                
+
                 // 将Excel模型转换为实体类
                 WineStock wineStock = new WineStock();
                 BeanUtils.copyProperties(excelModel, wineStock);
-                
+
                 // 设置一级分类和二级分类
                 if (!StringUtils.hasText(wineStock.getFirstLevelCategory())) {
                     wineStock.setFirstLevelCategory(currentFirstLevelCategory);
@@ -198,14 +195,14 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
                 if (!StringUtils.hasText(wineStock.getSecondLevelCategory())) {
                     wineStock.setSecondLevelCategory(currentSecondLevelCategory);
                 }
-                
+
                 wineStock.setLineIndex(row);
                 wineStock.setStatus("0");
                 wineStock.setCreatedAt(LocalDateTime.now());
                 wineStock.setUpdatedAt(LocalDateTime.now());
                 list.add(wineStock);
             }
-            
+
             // 保存数据
             if (!list.isEmpty()) {
                 log.info("{}条商品库存数据，开始存储数据库！", list.size());
@@ -214,7 +211,7 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
             } else {
                 log.warn("没有数据需要保存");
             }
-            
+
             return true;
         } catch (Exception e) {
             log.error("使用Aspose Cells导入商品库存数据失败", e);
