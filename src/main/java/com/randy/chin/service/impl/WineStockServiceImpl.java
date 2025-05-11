@@ -314,13 +314,40 @@ public class WineStockServiceImpl extends ServiceImpl<WineStockMapper, WineStock
             String productName = wi.getChineseName() + " " + wi.getVintage();
             productName = productName.replaceAll(" ", "");
                 for(WineStock ws: stocklist){
-                    if(ws.getProductName().replaceAll(" ", "").equals(productName)){
+                    String productNameRemoveBlank = ws.getProductName().replaceAll(" ", "");
+                    if(productNameRemoveBlank.equals(productName)){
                         wineInventoryService.lambdaUpdate().eq(WineInventory::getId, wi.getId())
                         .set(WineInventory::getQuantity, ws.getBookInventory()).set(WineInventory::getIzChanged, "10")
                         .set(WineInventory::getUpdatedAt, LocalDateTime.now())
                         .update();
+                    } else {
+                        // 杜鲁安玫瑰酒庄热夫雷香贝丹拾园红葡萄酒  2021
+                        // 杜鲁安玫瑰酒庄热夫雷香贝丹拾园干红2021   
+                        // 杜鲁安玫瑰酒庄热夫雷香贝丹拾园红葡萄酒2022
+                        // wi.getChineseName() 中 替换里面最后一个为“干”为空字符串 
+                       
+                        String newChineseName = productName.replaceAll("干(?!.*干)", "").replaceAll("葡萄酒(?!.*葡萄洒)", ""); 
+                        String newProductName = productNameRemoveBlank.replaceAll("干(?!.*干)", "").replaceAll("葡萄酒(?!.*葡萄洒)", "");
+                        if (newChineseName.equals(newProductName)) {
+                            wineInventoryService.lambdaUpdate().eq(WineInventory::getId, wi.getId())
+                        .set(WineInventory::getQuantity, ws.getBookInventory()).set(WineInventory::getIzChanged, "10")
+                        .set(WineInventory::getUpdatedAt, LocalDateTime.now())
+                        .update();
+                        }
+
                     }
                 }
         }
+    }
+    private boolean isLastFourCharsYear(String str) {
+        Boolean flag = false;
+        try{
+            flag = str!= null && str.matches(".*\\d{4}$") &&
+            Integer.parseInt(str.substring(str.length() - 4)) >= 1900 &&
+            Integer.parseInt(str.substring(str.length() - 4)) <= 2100;
+        }catch(Exception e){
+            System.out.println("eee");
+        }
+        return flag;
     }
 }
